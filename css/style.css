@@ -206,15 +206,37 @@ body.chip-hot .hero-vignette { background: linear-gradient(90deg, rgba(5,7,6,.92
 .m-item h3 { margin-bottom: 10px; font-size: 1.05rem; }
 .m-item p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.55; }
 
-/* featured horizontal gallery */
-.hscroll { position: relative; margin-top: 150px; }
-.hs-pin { position: relative; height: 100svh; min-height: 640px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 90px 0 40px; }
-.hs-head { padding: 0 var(--gut); display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 30px; }
-.hs-head .kicker { width: 100%; }
-.hs-head h2 { margin: 0; }
-.hs-note { margin: 0; font: 500 12px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
-.hs-track { display: flex; gap: 32px; padding: 40px var(--gut) 10px; width: max-content; will-change: transform; }
-.panel { width: min(1060px, 82vw); flex: none; display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: center; padding: 26px; border-radius: 28px; border: 1px solid var(--line); background: linear-gradient(150deg, rgba(24,31,28,.75), rgba(10,14,12,.75)); backdrop-filter: blur(10px); perspective: 1200px; }
+/* featured: a horizontal bar with its own sideways scroll; the page keeps scrolling vertically */
+.feat-wrap { margin-top: 10px; }
+.feat-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 18px; }
+.feat-tabs::-webkit-scrollbar { display: none; }
+.ft-item { flex: none; display: inline-flex; align-items: center; gap: 10px; max-width: 300px; padding: 9px 14px; border-radius: 99px; border: 1px solid var(--line-2); background: rgba(255,255,255,.02); color: var(--muted); font: 500 13.5px var(--sans); white-space: nowrap; transition: all .3s var(--ease); }
+.ft-t { overflow: hidden; text-overflow: ellipsis; }
+.ft-item:hover { color: var(--ink); border-color: rgba(var(--lime-rgb), .5); }
+.ft-item.on { color: #050706; background: var(--lime); border-color: var(--lime); box-shadow: 0 0 24px rgba(var(--lime-rgb), .3); }
+.ft-n { font: 700 11px var(--mono); color: var(--dim); }
+.ft-item.on .ft-n { color: rgba(5,7,6,.6); }
+.ft-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.ft-item.on .ft-dot { color: #050706; box-shadow: none; }
+.feat-view {
+  /* full-bleed track, content aligned with the page gutter */
+  margin-inline: calc(50% - 50vw); padding: 6px 0 14px; overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; scroll-padding-inline: var(--gut); overscroll-behavior-x: contain;
+  scrollbar-width: none; outline: none; cursor: grab;
+}
+.feat-view::-webkit-scrollbar { display: none; }
+.feat-view.dragging { cursor: grabbing; scroll-snap-type: none; }
+.feat-view.dragging .panel { pointer-events: none; }
+.feat-view:focus-visible .panel.in { box-shadow: 0 0 0 2px var(--lime); }
+.feat-list { display: flex; gap: 24px; width: max-content; padding-inline: var(--gut); }
+.panel { scroll-snap-align: start; width: min(1060px, calc(100vw - 2 * var(--gut) - 90px)); display: grid; grid-template-columns: 1.25fr 1fr; gap: 34px; align-items: center; padding: 26px; border-radius: 24px; border: 1px solid var(--line); background: linear-gradient(150deg, rgba(24,31,28,.75), rgba(10,14,12,.75)); backdrop-filter: blur(10px); perspective: 1200px; opacity: .45; transform: scale(.95); transition: opacity .6s var(--ease), transform .6s var(--ease), border-color .6s; user-select: none; }
+.panel img { -webkit-user-drag: none; }
+.panel.in { opacity: 1; transform: none; border-color: rgba(var(--lime-rgb), .25); }
+.feat-foot { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 14px; margin-top: 18px; }
+.ft-bar { height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.ft-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--lime), var(--mint)); transform-origin: 0 50%; transform: scaleX(0); box-shadow: 0 0 12px rgba(var(--lime-rgb), .6); transition: transform .25s var(--ease); }
+.ft-count { font: 500 12px var(--mono); color: var(--muted); min-width: 56px; text-align: center; }
+.ft-hint { grid-column: 1 / -1; margin: 0; font: 500 11.5px var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
 .panel-media { position: relative; border-radius: 18px; padding: 0 12px 12px; background: linear-gradient(160deg, #161d1a, #0a0e0c); border: 1px solid var(--line-2); box-shadow: 0 40px 80px -30px rgba(0,0,0,.9); }
 .screen-bar { display: flex; align-items: center; gap: 6px; height: 36px; }
 .screen-bar span { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.14); }
@@ -231,9 +253,6 @@ body.chip-hot .hero-vignette { background: linear-gradient(90deg, rgba(5,7,6,.92
 .panel-body h3 { font-size: clamp(1.4rem, 1rem + 1.1vw, 2rem); letter-spacing: -.03em; margin: 16px 0 14px; line-height: 1.12; }
 .headline { margin: 0 0 18px; color: var(--soft); padding-left: 14px; border-left: 2px solid var(--lime); }
 .panel-body .chips { margin-bottom: 24px; }
-.hs-progress { position: relative; margin: 26px var(--gut) 0; height: 2px; background: var(--line); }
-.hs-progress i { position: absolute; inset: 0; background: linear-gradient(90deg, var(--lime), var(--mint)); transform-origin: 0 50%; transform: scaleX(0); box-shadow: 0 0 12px rgba(var(--lime-rgb), .6); }
-.hs-progress span { position: absolute; right: 0; top: 10px; font: 500 12px var(--mono); color: var(--muted); }
 
 /* projects */
 .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
@@ -350,11 +369,9 @@ body.chip-hot .hero-vignette { background: linear-gradient(90deg, rgba(5,7,6,.92
   .wire { display: none; }
 }
 @media (max-width: 899px) {
-  .hs-pin { height: auto; min-height: 0; padding: 0; overflow: visible; }
-  .hs-track { width: auto; flex-direction: column; padding-top: 30px; }
-  .panel { width: 100%; grid-template-columns: 1fr; gap: 22px; padding: 16px; }
-  .hs-progress, .hs-note { display: none; }
-  .hscroll { margin-top: 110px; }
+  /* phone / tablet: same horizontal bar, one stacked card per swipe */
+  .panel { width: calc(100vw - 2 * var(--gut) - 28px); grid-template-columns: 1fr; gap: 18px; padding: 16px; }
+  .feat-list { gap: 14px; }
 }
 @media (max-width: 720px) {
   .kbd-btn kbd, #cmdLabel { display: none; }

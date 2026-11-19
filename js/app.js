@@ -20,7 +20,7 @@
       skillHint: "Click a skill to see the projects that use it.", copy: "Copy e-mail", copied: "E-mail copied", palette: "Jump to a section or a project…",
       palSec: "Sections", palProj: "Projects", palAct: "Actions", actLang: "Passer en français", actPdf: "Download the PDF", actMail: "Copy my e-mail",
       boot: ["MAB-26 boot ROM v2.0", "probing FPGA fabric ........ ok", "loading 25 project modules .. ok", "checking every number ...... measured", "ready"],
-      top: "Back to top", cmd: "Search", next: "Next", prev: "Previous", featNote: "Scroll →", cursorOpen: "OPEN", cursorPing: "PING", cursorFilter: "FILTER",
+      top: "Back to top", cmd: "Search", next: "Next", prev: "Previous", featHint: "Drag, swipe or Shift + scroll to browse sideways. The mouse wheel keeps going down the page.", cursorOpen: "OPEN", cursorPing: "PING", cursorFilter: "FILTER",
     },
     fr: {
       eyebrow: "systèmes embarqués · fpga · ia embarquée",
@@ -31,7 +31,7 @@
       skillHint: "Cliquez sur une compétence pour voir les projets qui l'utilisent.", copy: "Copier l'e-mail", copied: "E-mail copié", palette: "Aller à une section ou un projet…",
       palSec: "Sections", palProj: "Projets", palAct: "Actions", actLang: "Switch to English", actPdf: "Télécharger le PDF", actMail: "Copier mon e-mail",
       boot: ["MAB-26 boot ROM v2.0", "sondage de la matrice FPGA .. ok", "chargement de 25 projets .... ok", "vérification des chiffres ... mesurés", "prêt"],
-      top: "Haut de page", cmd: "Chercher", next: "Suivant", prev: "Précédent", featNote: "Défilez →", cursorOpen: "VOIR", cursorPing: "PING", cursorFilter: "FILTRER",
+      top: "Haut de page", cmd: "Chercher", next: "Suivant", prev: "Précédent", featHint: "Glissez, balayez ou Maj + molette pour parcourir. La molette seule continue la page.", cursorOpen: "VOIR", cursorPing: "PING", cursorFilter: "FILTRER",
     },
   };
 
@@ -59,6 +59,8 @@
     arrow: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M7 17 17 7M8 7h9v9"/></svg>',
     right: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M5 12h14m-6-6 6 6-6 6"/></svg>',
     left: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M19 12H5m6-6-6 6 6 6"/></svg>',
+    up: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 19V5m-6 6 6-6 6 6"/></svg>',
+    down: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 5v14m-6-6 6 6 6-6"/></svg>',
     close: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M6 6l12 12M18 6 6 18"/></svg>',
     copy: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M8 8h12v12H8zM4 16V4h12"/></svg>',
     hash: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg>',
@@ -117,9 +119,19 @@
       u.methodItems.map(([h, d], i) => `<div class="m-item rv tilt spot"><div class="m-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${mIcons[i]}</svg></div><span class="num">${pad(i + 1)}</span><h3>${esc(h)}</h3><p>${esc(d)}</p></div>`).join("") + "</div>";
 
     const feats = PROJ.filter((p) => p.featured);
-    $("#featHead").innerHTML = secHead(1, `<p class="hs-note">${esc(x.featNote)}</p>`);
-    $("#hsTrack").innerHTML = feats.map((p, i) => `
-      <article class="panel" data-open="${p.id}" data-cursor="${esc(x.cursorOpen)}">
+    $("#featHead").innerHTML = secHead(1);
+    $("#featTabs").innerHTML = feats.map((p, i) => `
+      <button type="button" class="ft-item${i ? "" : " on"}" data-goto="${i}">
+        <span class="ft-n">${pad(i + 1)}</span><span class="ft-t">${esc(t(p.title))}</span><i class="ft-dot s-${p.status}"></i>
+      </button>`).join("");
+    $("#featFoot").innerHTML = `
+      <button type="button" class="icon-btn" data-fstep="-1" aria-label="${esc(x.prev)}">${I.left}</button>
+      <div class="ft-bar"><i id="ftBar"></i></div>
+      <span class="ft-count" id="ftCount">01 / ${pad(feats.length)}</span>
+      <button type="button" class="icon-btn" data-fstep="1" aria-label="${esc(x.next)}">${I.right}</button>
+      <p class="ft-hint">${esc(x.featHint)}</p>`;
+    $("#featList").innerHTML = feats.map((p, i) => `
+      <article class="panel${i ? "" : " in"}" data-open="${p.id}" data-cursor="${esc(x.cursorOpen)}">
         <div class="panel-media tilt">
           <div class="screen-bar"><span></span><span></span><span></span><em>fig · ${esc(p.id)}</em></div>
           <div class="screen-img">${img(p) ? `<img src="${img(p)}" alt="" loading="lazy">` : ""}</div>
@@ -134,7 +146,7 @@
           <span class="btn primary">${esc(x.details)}${I.arrow}</span>
         </div>
       </article>`).join("");
-    $("#hsCount").textContent = `01 / ${pad(feats.length)}`;
+    setupFeatured();
 
     $("#allHead").innerHTML = secHead(2, `<span class="count" id="count"></span>`);
     $("#search").placeholder = x.search; $("#search").value = state.skill || state.q;
@@ -177,6 +189,68 @@
       return alts.some((a) => (a.length <= 3 ? new RegExp(`^${re(a)}\\d*$`).test(s) : word(s, a) || (s.length > 3 && word(a, s))));
     });
   }
+  /* ---------- featured: horizontal bar with its own sideways scroll ----------
+     The mouse wheel keeps scrolling the page; the bar moves with drag, Shift+wheel,
+     a trackpad swipe, the arrow buttons or the tabs. */
+  let featBound = false, dragMoved = false;
+  const panelLeft = (v, p) => p.offsetLeft - v.querySelector(".panel").offsetLeft;   // 0 for the first panel
+  function featIndex() {
+    const v = $("#featView"), ps = $$(".panel", v);
+    let best = 0, bd = Infinity;
+    ps.forEach((p, i) => { const d = Math.abs(panelLeft(v, p) - v.scrollLeft); if (d < bd) { bd = d; best = i; } });
+    if (v.scrollLeft + v.clientWidth >= v.scrollWidth - 2) best = ps.length - 1;   // at the far right, the last one is active
+    return best;
+  }
+  function updateFeat() {
+    const v = $("#featView"); if (!v) return;
+    const ps = $$(".panel", v), i = featIndex(), max = v.scrollWidth - v.clientWidth;
+    $$(".ft-item").forEach((b, k) => b.classList.toggle("on", k === i));
+    ps.forEach((p, k) => p.classList.toggle("in", k === i));
+    const bar = $("#ftBar"); if (bar) bar.style.transform = `scaleX(${max > 0 ? (v.scrollLeft / max) * (1 - 1 / ps.length) + 1 / ps.length : 1})`;
+    const c = $("#ftCount"); if (c) c.textContent = `${pad(i + 1)} / ${pad(ps.length)}`;
+    // keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the page)
+    const on = $(".ft-item.on"), strip = $("#featTabs");
+    if (on && strip.scrollWidth > strip.clientWidth) {
+      const l = on.offsetLeft - strip.offsetLeft, r = l + on.offsetWidth;
+      if (l < strip.scrollLeft) strip.scrollTo({ left: l - 8, behavior: "smooth" });
+      else if (r > strip.scrollLeft + strip.clientWidth) strip.scrollTo({ left: r - strip.clientWidth + 8, behavior: "smooth" });
+    }
+  }
+  function featGo(i) {
+    const v = $("#featView"), ps = $$(".panel", v);
+    i = Math.max(0, Math.min(ps.length - 1, i));
+    v.scrollTo({ left: panelLeft(v, ps[i]), behavior: reduce ? "auto" : "smooth" });
+  }
+  function setupFeatured() {
+    updateFeat();
+    if (featBound) return; featBound = true;
+    const v = $("#featView");
+    let raf = 0;
+    v.addEventListener("scroll", () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(updateFeat); }, { passive: true });
+    addEventListener("resize", updateFeat);
+    // keyboard when the bar has focus
+    v.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); featGo(featIndex() + 1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); featGo(featIndex() - 1); }
+    });
+    // drag to scroll with the mouse (touch already scrolls natively)
+    let down = false, x0 = 0, s0 = 0;
+    v.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      down = true; dragMoved = false; x0 = e.clientX; s0 = v.scrollLeft;
+    });
+    addEventListener("pointermove", (e) => {
+      if (!down) return;
+      const dx = e.clientX - x0;
+      if (Math.abs(dx) > 6 && !dragMoved) { dragMoved = true; v.classList.add("dragging"); }
+      if (dragMoved) v.scrollLeft = s0 - dx;
+    });
+    addEventListener("pointerup", () => {
+      if (!down) return; down = false;
+      if (dragMoved) { v.classList.remove("dragging"); featGo(featIndex()); setTimeout(() => (dragMoved = false), 0); }
+    });
+  }
+
   function matches(p) {
     if (state.domain !== "all" && !p.domains.includes(state.domain)) return false;
     if (state.status !== "all" && p.status !== state.status) return false;
@@ -276,17 +350,8 @@
       // marquee speed follows scroll velocity
       const mq = [G.to("#mq1", { xPercent: -50, duration: 70, ease: "none", repeat: -1 }), G.fromTo("#mq2", { xPercent: -50 }, { xPercent: 0, duration: 90, ease: "none", repeat: -1 })];
       ScrollTrigger.create({ onUpdate: (s) => { const v = 1 + Math.min(6, Math.abs(s.getVelocity()) / 400); mq.forEach((m) => G.to(m, { timeScale: v, duration: 0.2, overwrite: true, onComplete: () => G.to(m, { timeScale: 1, duration: 1.2 }) })); } });
-      // horizontal featured gallery (desktop)
-      const mm = G.matchMedia();
-      mm.add("(min-width: 900px)", () => {
-        const track = $("#hsTrack");
-        const dist = () => track.scrollWidth - innerWidth + 64;
-        const tween = G.to(track, { x: () => -dist(), ease: "none", scrollTrigger: {
-          trigger: "#featured", pin: "#hsPin", start: "top top", end: () => `+=${dist()}`, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1,
-          onUpdate: (s) => { $("#hsBar").style.transform = `scaleX(${s.progress})`; const n = $$(".panel").length; $("#hsCount").textContent = `${pad(Math.min(n, 1 + Math.floor(s.progress * n * 0.999)))} / ${pad(n)}`; },
-        } });
-        $$(".panel").forEach((pnl) => G.fromTo(pnl.querySelector(".panel-media"), { scale: 0.86, rotateY: -14 }, { scale: 1, rotateY: 0, ease: "none", scrollTrigger: { trigger: pnl, containerAnimation: tween, start: "left 100%", end: "left 35%", scrub: true } }));
-      });
+      // featured block slides in as a whole
+      G.from(".feat-tabs, .feat-view, .feat-foot", { y: 60, opacity: 0, duration: 1, ease: "power3.out", stagger: 0.1, scrollTrigger: { trigger: ".feat-wrap", start: "top 85%" } });
       // hero parallax out
       G.to("#heroInner", { y: -120, opacity: 0, ease: "none", scrollTrigger: { trigger: "#hero", start: "top top", end: "bottom top", scrub: true } });
     });
@@ -447,6 +512,11 @@
   }
 
   document.addEventListener("click", (e) => {
+    if (dragMoved && e.target.closest("#featView")) { e.preventDefault(); return; }   // end of a drag, not a click
+    const go = e.target.closest("[data-goto]");
+    if (go) return featGo(+go.dataset.goto);
+    const fs = e.target.closest("[data-fstep]");
+    if (fs) return featGo(featIndex() + +fs.dataset.fstep);
     const chip = e.target.closest(".chip");
     if (chip) { state.domain = chip.dataset.d; renderFilters(); renderGrid(); return; }
     const seg = e.target.closest("#statusSeg button");
