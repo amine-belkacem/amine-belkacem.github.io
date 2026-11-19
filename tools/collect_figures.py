@@ -1,14 +1,19 @@
 """Copy one lead figure per project into assets/img/, resized for the web.
 
 Run from the repository root:  python tools/collect_figures.py
-The source repositories are expected next to this one (same parent folder).
+Source repositories: folder given by the PORTFOLIO_REPOS environment variable,
+or by default Desktop\\les memoires et projet pour le cv\\github.
 """
+import os
 from pathlib import Path
 
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-REPOS = ROOT.parent
+REPOS = Path(os.environ.get(
+    "PORTFOLIO_REPOS",
+    Path.home() / "Desktop" / "les memoires et projet pour le cv" / "github",
+))
 OUT = ROOT / "assets" / "img"
 MAX_W = 1100
 
