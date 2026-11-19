@@ -92,7 +92,7 @@ body::before {
 .die { width: 26px; height: 26px; border: 1.5px solid var(--lime); border-radius: 7px; position: relative; box-shadow: 0 0 18px rgba(var(--lime-rgb), .4), inset 0 0 8px rgba(var(--lime-rgb), .3); }
 .die::after { content: ""; position: absolute; inset: 7px; background: var(--lime); border-radius: 2px; animation: pulse 2.4s infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
-.nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.nav { display: flex; gap: 12px; flex: 1; justify-content: center; }
 .nav a { text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 99px; transition: color .2s, background .2s, transform .25s var(--ease); }
 .nav a span { font: 500 10.5px var(--mono); color: var(--lime); margin-right: 6px; }
 .nav a:hover { color: var(--ink); background: rgba(255,255,255,.05); }
@@ -169,7 +169,7 @@ body.chip-hot .hero-vignette { background: linear-gradient(90deg, rgba(5,7,6,.92
 .role { color: var(--lime); font-family: var(--mono); font-weight: 500; }
 .caret { display: inline-block; width: .55em; height: 1.05em; vertical-align: -.15em; margin-left: 3px; background: var(--lime); animation: pulse 1s steps(1) infinite; }
 .pitch { margin: 14px 0 0; max-width: 620px; color: var(--muted); font-size: 1.02rem; }
-.links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .hero-foot { display: flex; flex-wrap: wrap; align-items: stretch; gap: 14px; margin-top: 28px; }
 .stats { display: flex; margin: 0; border: 1px solid var(--line-2); border-radius: var(--r); background: rgba(5,7,6,.5); backdrop-filter: blur(12px); }
 .stats div { padding: 14px 24px; }

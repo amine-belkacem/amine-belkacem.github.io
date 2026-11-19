@@ -434,11 +434,25 @@
     const loop = () => { cx += (mx - cx) * 0.18; cy += (my - cy) * 0.18; cur.style.transform = `translate(${cx}px, ${cy}px)`; requestAnimationFrame(loop); };
     loop();
     // magnetic buttons
+    // Only the button under (or within 14 px of) the pointer moves, by at most 6 px x 4 px,
+    // so a wide button can never slide onto its neighbour.
+    const PAD = 14, MAX_X = 6, MAX_Y = 4;
     document.addEventListener("pointermove", (e) => {
-      $$(".magnetic").forEach((m) => {
-        const r = m.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-        const d = Math.hypot(dx, dy), R = Math.max(r.width, r.height) * 0.9;
-        m.style.transform = d < R && !reduce ? `translate(${dx * 0.25}px, ${dy * 0.3}px)` : "";
+      // pick the single closest button within reach (distance to its edges, 0 when the pointer is on it)
+      let best = null, bestD = Infinity;
+      const all = $$(".magnetic");
+      if (!reduce) all.forEach((m) => {
+        const r = m.getBoundingClientRect();
+        const ox = Math.max(r.left - e.clientX, 0, e.clientX - r.right), oy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+        const d = Math.hypot(ox, oy);
+        if (d < PAD && d < bestD) { bestD = d; best = { m, r }; }
+      });
+      all.forEach((m) => {
+        if (!best || m !== best.m) { if (m.style.transform) m.style.transform = ""; return; }
+        const { r } = best;
+        const nx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2 + PAD)));
+        const ny = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2 + PAD)));
+        m.style.transform = `translate(${(nx * MAX_X).toFixed(1)}px, ${(ny * MAX_Y).toFixed(1)}px)`;
       });
     }, { passive: true });
   }
