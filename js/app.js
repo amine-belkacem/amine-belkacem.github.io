@@ -42,7 +42,7 @@
   const params = new URLSearchParams(location.search);
   let lang = params.get("lang") || store.get("pf.lang") || ((navigator.language || "en").toLowerCase().startsWith("fr") ? "fr" : "en");
   if (!UI[lang]) lang = "en";
-  const state = { domain: "all", status: "all", q: "", skill: null };
+    const state = { domain: "all", status: "all", q: "", skill: null, expanded: false };
 
   const t = (o) => (o && typeof o === "object" ? o[lang] ?? o.en : o ?? "");
   const domName = (id) => t(DOM.find((d) => d.id === id));
@@ -278,10 +278,13 @@
     const grid = $("#grid");
     const order = { done: 0, wip: 1, early: 2 };
     const list = PROJ.filter(matches).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || order[a.status] - order[b.status]);
+        const filtering = state.domain !== "all" || state.status !== "all" || state.q || state.skill;
+    const collapsed = !filtering && !state.expanded;
+    const shown = collapsed ? list.filter((p) => p.status === "done").slice(0, 6) : list;
     const flipState = animate && G && !reduce ? Flip.getState($$(".card", grid)) : null;
     const existing = new Map($$(".card", grid).map((c) => [c.dataset.id, c]));
     const frag = document.createDocumentFragment();
-    for (const p of list) {
+    for (const p of shown) {
       let c = existing.get(p.id);
       if (!c) { const tmp = document.createElement("div"); tmp.innerHTML = cardHTML(p); c = tmp.firstElementChild; }
       frag.appendChild(c); existing.delete(p.id);
@@ -290,6 +293,11 @@
     grid.appendChild(frag);
     $("#count") && ($("#count").textContent = `${pad(list.length)} / ${PROJ.length}`);
     $("#empty").hidden = list.length > 0;
+        const more = $("#showMore"), fr = lang === "fr";
+    more.hidden = filtering || list.length <= 6;
+    more.textContent = collapsed
+      ? (fr ? `Voir plus (${list.length - shown.length})` : `Show more (${list.length - shown.length})`)
+      : (fr ? "Voir moins" : "Show less");
     if (flipState) {
       Flip.from(flipState, { duration: 0.6, ease: "power3.inOut", absolute: true, stagger: 0.015,
         onEnter: (els) => G.fromTo(els, { opacity: 0, scale: 0.9, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, stagger: 0.03 }),
@@ -545,6 +553,11 @@
     clearTimeout(st); st = setTimeout(() => { state.q = e.target.value.trim(); renderGrid(); }, 140);
   });
   $("#searchClear").addEventListener("click", () => { $("#search").value = ""; state.q = ""; state.skill = null; $(".search").classList.remove("skill-on"); renderGrid(); });
+    $("#showMore").addEventListener("click", () => {
+    state.expanded = !state.expanded;
+    renderGrid();
+    if (!state.expanded) document.getElementById("projects").scrollIntoView({ behavior: "smooth" });
+  });
   $("#langBtn").addEventListener("click", toggleLang);
 
   const bar = $("#topbar"), prog = $("#progress");

@@ -280,6 +280,7 @@ body.chip-hot .hero-vignette { background: linear-gradient(90deg, rgba(5,7,6,.92
 .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .card-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 6px; }
 .empty { text-align: center; color: var(--muted); padding: 60px 0; font: 500 14px var(--mono); }
+.more-wrap { display: flex; justify-content: center; margin-top: 28px; }
 
 /* skills */
 .skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
