@@ -401,20 +401,6 @@ window.PROJECTS = [
     stack: ["JavaScript", "Home Assistant", "REST API", "ESP32", "Chart.js"],
   },
   {
-    id: "face-attendance-raspberry-pi", status: "done", year: "2024–2025",
-    domains: ["iot", "ai"],
-    stage: { en: "Master project, USTHB", fr: "Projet de Master, USTHB" },
-    title: { en: "Face recognition time clock on Raspberry Pi", fr: "Pointeuse à reconnaissance faciale sur Raspberry Pi" },
-    tagline: {
-      en: "A time clock on a Raspberry Pi 3 B+: Haar cascade detection, KNN recognition, unknown-face rejection and a Flask page to enrol users. Nothing leaves the board.",
-      fr: "Une pointeuse sur Raspberry Pi 3 B+ : détection par cascade de Haar, reconnaissance KNN, rejet des visages inconnus et page Flask pour enrôler les utilisateurs. Rien ne quitte la carte.",
-    },
-    results: [
-      { en: "Bugs of the report version fixed; 16 pytest tests in CI.", fr: "Bugs de la version du rapport corrigés ; 16 tests pytest en CI." },
-    ],
-    stack: ["Python", "OpenCV", "scikit-learn", "Flask", "Raspberry Pi"],
-  },
-  {
     id: "smart-house-solar-energy", status: "done", year: "2022–2023",
     domains: ["analog", "iot"],
     stage: { en: "Bachelor's thesis, USTHB", fr: "Mémoire de Licence, USTHB" },
