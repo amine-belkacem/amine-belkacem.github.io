@@ -42,7 +42,7 @@
   const params = new URLSearchParams(location.search);
   let lang = params.get("lang") || store.get("pf.lang") || ((navigator.language || "en").toLowerCase().startsWith("fr") ? "fr" : "en");
   if (!UI[lang]) lang = "en";
-    const state = { domain: "all", status: "all", q: "", skill: null, expanded: false };
+  const state = { domain: "all", status: "all", q: "", skill: null, expanded: false };
 
   const t = (o) => (o && typeof o === "object" ? o[lang] ?? o.en : o ?? "");
   const domName = (id) => t(DOM.find((d) => d.id === id));
@@ -278,7 +278,7 @@
     const grid = $("#grid");
     const order = { done: 0, wip: 1, early: 2 };
     const list = PROJ.filter(matches).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || order[a.status] - order[b.status]);
-        const filtering = state.domain !== "all" || state.status !== "all" || state.q || state.skill;
+    const filtering = state.domain !== "all" || state.status !== "all" || state.q || state.skill;
     const collapsed = !filtering && !state.expanded;
     const shown = collapsed ? list.filter((p) => p.status === "done").slice(0, 6) : list;
     const flipState = animate && G && !reduce ? Flip.getState($$(".card", grid)) : null;
@@ -293,7 +293,7 @@
     grid.appendChild(frag);
     $("#count") && ($("#count").textContent = `${pad(list.length)} / ${PROJ.length}`);
     $("#empty").hidden = list.length > 0;
-        const more = $("#showMore"), fr = lang === "fr";
+    const more = $("#showMore"), fr = lang === "fr";
     more.hidden = filtering || list.length <= 6;
     more.textContent = collapsed
       ? (fr ? `Voir plus (${list.length - shown.length})` : `Show more (${list.length - shown.length})`)
@@ -553,7 +553,7 @@
     clearTimeout(st); st = setTimeout(() => { state.q = e.target.value.trim(); renderGrid(); }, 140);
   });
   $("#searchClear").addEventListener("click", () => { $("#search").value = ""; state.q = ""; state.skill = null; $(".search").classList.remove("skill-on"); renderGrid(); });
-    $("#showMore").addEventListener("click", () => {
+  $("#showMore").addEventListener("click", () => {
     state.expanded = !state.expanded;
     renderGrid();
     if (!state.expanded) document.getElementById("projects").scrollIntoView({ behavior: "smooth" });
