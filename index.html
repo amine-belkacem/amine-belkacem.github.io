@@ -5,66 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mohamed Amine Belkacem · Portfolio</title>
   <meta name="description" content="Embedded systems, FPGA and embedded AI projects by Mohamed Amine Belkacem, M2 student at the University of Lorraine.">
-  <meta name="theme-color" content="#07090a">
+  <meta name="theme-color" content="#050706">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Unbounded:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307090a'/%3E%3Crect x='8' y='8' width='16' height='16' rx='3' fill='none' stroke='%23c6f432' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c6f432'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050706'/%3E%3Crect x='8' y='8' width='16' height='16' rx='3' fill='none' stroke='%23c6f432' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23c6f432'/%3E%3C/svg%3E">
+  <script type="importmap">
+    { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    } }
+  </script>
 </head>
-<body>
-  <div class="glow" id="glow" aria-hidden="true"></div>
+<body class="booting">
+  <div class="boot" id="boot" aria-hidden="true">
+    <div class="boot-log" id="bootLog"></div>
+    <div class="boot-bar"><i id="bootBar"></i></div>
+  </div>
 
-  <header class="topbar">
-    <a class="logo" href="#top" aria-label="Home"><span class="die"></span><b>MAB</b></a>
+  <div class="cursor" id="cursor" aria-hidden="true"><span id="cursorLabel"></span></div>
+  <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+
+  <header class="topbar" id="topbar">
+    <a class="logo magnetic" href="#top" aria-label="Home"><span class="die"></span><b>MAB</b></a>
     <nav class="nav" id="nav"></nav>
     <div class="tools">
-      <span class="live" id="live"></span>
-      <a class="btn small" id="pdfLink" href="portfolio-en.pdf"></a>
-      <button class="btn small" id="langBtn" type="button"></button>
+      <button class="kbd-btn" id="cmdBtn" type="button"><span id="cmdLabel">Search</span><kbd>Ctrl K</kbd></button>
+      <a class="btn small magnetic" id="pdfLink" href="portfolio-en.pdf"></a>
+      <button class="btn small magnetic" id="langBtn" type="button"></button>
     </div>
   </header>
 
   <main id="top">
     <section class="hero" id="hero">
-      <canvas class="pcb" id="pcb" aria-hidden="true"></canvas>
-      <div class="hero-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="stage" id="stage" aria-hidden="true"></div>
+      <div class="hero-vignette" aria-hidden="true"></div>
       <div class="hero-inner" id="heroInner"></div>
-      <div class="scope">
-        <canvas id="scopeCanvas" aria-hidden="true"></canvas>
-        <div class="readouts" id="readouts"></div>
-      </div>
+      <div class="hero-hint" id="heroHint" aria-hidden="true"></div>
+      <a class="scroll-cue" href="#method" aria-label="Scroll"><span></span></a>
     </section>
 
-    <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
+    <div class="marquees" aria-hidden="true">
+      <div class="marquee"><div class="marquee-track" id="mq1"></div></div>
+      <div class="marquee rev"><div class="marquee-track" id="mq2"></div></div>
+    </div>
 
     <section class="section" id="method"></section>
 
-    <section class="section" id="projects">
-      <div class="sec-head" id="featHead"></div>
-      <div class="featured" id="featured"></div>
+    <section class="hscroll" id="featured">
+      <div class="hs-pin" id="hsPin">
+        <div class="hs-head" id="featHead"></div>
+        <div class="hs-track" id="hsTrack"></div>
+        <div class="hs-progress"><i id="hsBar"></i><span id="hsCount"></span></div>
+      </div>
+    </section>
 
+    <section class="section" id="projects">
       <div class="sec-head" id="allHead"></div>
+      <div class="toolbar">
+        <label class="search"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2"/></svg>
+          <input id="search" type="search" autocomplete="off" spellcheck="false"><button type="button" id="searchClear" aria-label="Clear">×</button></label>
+        <div class="status-seg" id="statusSeg" role="group"></div>
+      </div>
       <div class="filters" id="filters" role="toolbar"></div>
       <div class="grid" id="grid"></div>
+      <p class="empty" id="empty" hidden></p>
     </section>
 
     <section class="section" id="skills"></section>
     <section class="section" id="path"></section>
     <section class="section contact" id="contact"></section>
 
-    <!-- full, linear version used for print / PDF -->
     <section class="print-list" id="printList" aria-hidden="true"></section>
   </main>
 
   <footer class="footer" id="footer"></footer>
 
-  <dialog class="modal" id="modal">
-    <div class="modal-body" id="modalBody"></div>
+  <dialog class="modal" id="modal"><div class="modal-body" id="modalBody"></div></dialog>
+
+  <dialog class="palette" id="palette">
+    <div class="pal-in"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2"/></svg><input id="palInput" autocomplete="off" spellcheck="false"><kbd>Esc</kbd></div>
+    <ul class="pal-list" id="palList" role="listbox"></ul>
   </dialog>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
   <script src="js/data.js"></script>
-  <script src="js/fx.js"></script>
   <script src="js/app.js"></script>
+  <script type="module" src="js/scene.js"></script>
 </body>
 </html>

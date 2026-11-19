@@ -31,7 +31,7 @@ def main() -> None:
         out = ROOT / f"portfolio-{lang}.pdf"
         subprocess.run(
             [exe, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
-             "--virtual-time-budget=8000", f"--print-to-pdf={out}", f"{page}?lang={lang}"],
+             "--virtual-time-budget=8000", f"--print-to-pdf={out}", f"{page}?lang={lang}&noboot"],
             check=True, capture_output=True,
         )
         print(f"{out.name}: {out.stat().st_size // 1024} KB")
