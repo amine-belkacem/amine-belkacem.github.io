@@ -3,9 +3,9 @@ window.SITE = {
   "updated": "2026-11-20",
   "lighthouse": {
     "date": "2026-11-20",
-    "url": "http://localhost:8799/",
+    "url": "https://amine-belkacem.github.io/",
     "mobile": {
-      "performance": 91,
+      "performance": 95,
       "accessibility": 100,
       "best-practices": 100,
       "seo": 100
