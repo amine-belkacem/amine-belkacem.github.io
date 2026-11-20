@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://amine-belkacem.github.io/sitemap.xml

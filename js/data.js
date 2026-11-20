@@ -27,6 +27,17 @@ window.PROFILE = {
     en: "French · English · Arabic · Kabyle · Spanish",
     fr: "Français · Anglais · Arabe · Kabyle · Espagnol",
   },
+  /* Shown in the hero, the contact section and on /cv */
+  availability: {
+    en: ["Available from March 2027", "6 months", "Work permit: student status"],
+    fr: ["Disponible à partir de mars 2027", "6 mois", "Permis de travail : statut étudiant"],
+  },
+  /* Paste your Calendly (or Google Calendar booking page) link here, e.g. "https://calendly.com/your-name/15min".
+     Empty = the "Book a call" button opens an e-mail with a pre-filled subject instead. */
+  booking: "",
+  /* GoatCounter site code (the part before .goatcounter.com), e.g. "amine-belkacem". Empty = no analytics. */
+  goatcounter: "",
+  location: { en: "Metz, France", fr: "Metz, France" },
 };
 
 window.DOMAINS = [
@@ -445,12 +456,12 @@ window.EXPERIENCE = [
     where: { en: "University of Lorraine, Metz", fr: "Université de Lorraine, Metz" },
   },
   {
-    when: "→ 2025",
+    when: "2023 – 2025",
     title: { en: "Master's in Electronics, Embedded Systems", fr: "Master Électronique des systèmes embarqués" },
     where: { en: "USTHB, Algiers · thesis: connected health monitor", fr: "USTHB, Alger · mémoire : moniteur de santé connecté" },
   },
   {
-    when: { en: "Internship", fr: "Stage" },
+    when: { en: "Jul – Aug 2024", fr: "juil. – août 2024" },
     title: { en: "Low-power LoRaWAN metering node", fr: "Nœud de mesure LoRaWAN basse consommation" },
     where: {
       en: "CREDEG (Sonelgaz group) · ESP32 firmware for voltage and current measurement, deep-sleep state machine, LoRa-E5 module, MQTT",
@@ -458,7 +469,7 @@ window.EXPERIENCE = [
     },
   },
   {
-    when: "→ 2023",
+    when: "2020 – 2023",
     title: { en: "Bachelor's in Electronics", fr: "Licence d'électronique" },
     where: { en: "USTHB, Algiers · thesis: smart-house solar supply", fr: "USTHB, Alger · mémoire : alimentation solaire de maison connectée" },
   },
@@ -532,6 +543,167 @@ window.UI = {
   },
 };
 
+/* Datasheet shown at the top of every project: problem, constraint, period.
+   (Result = first key result, tools = stack, state = status + stage: taken from the project itself.)
+   The period is the calendar period of the work, not a duration computed from commits. */
+window.SHEETS = {
+  "aes128-sidechannel-lab": {
+    problem: { en: "Does a countermeasure that looks secure at register level still hold once the glitches of the real netlist count?", fr: "Une contre-mesure sûre au niveau des registres le reste-t-elle une fois les glitches de la vraie netlist pris en compte ?" },
+    constraint: { en: "Simulation only, no board: traces from GHDL and Questa, area and Fmax from Quartus.", fr: "Simulation uniquement, sans carte : traces GHDL et Questa, surface et Fmax par Quartus." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "autorange-current-profiler": {
+    problem: { en: "Measure 1 µA to 500 mA without losing a sample when the range switches.", fr: "Mesurer de 1 µA à 500 mA sans perdre d'échantillon au changement de gamme." },
+    constraint: { en: "€0 until the very end: every block validated in ngspice before building; burden under 100 mV.", fr: "0 € jusqu'à la fin : chaque bloc validé dans ngspice avant fabrication ; chute de tension sous 100 mV." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "int8-neon-inference-pi5": {
+    problem: { en: "What really happens inside an int8 inference engine, down to the SIMD register?", fr: "Que se passe-t-il vraiment dans un moteur d'inférence int8, jusqu'au registre SIMD ?" },
+    constraint: { en: "Bit-exact with an integer reference, layer by layer, before any speed claim; no malloc at inference.", fr: "Bit-exact avec une référence entière, couche par couche, avant toute mesure de vitesse ; aucun malloc à l'inférence." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "french-bpe-tokenizer": {
+    problem: { en: "How much do existing tokenizers penalise French, and can a French tokenizer run on a Raspberry Pi?", fr: "Combien les tokenizers existants pénalisent-ils le français, et un tokenizer français peut-il tourner sur un Raspberry Pi ?" },
+    constraint: { en: "Lossless and deterministic; the C encoder must give exactly the Python ids.", fr: "Sans perte et déterministe ; l'encodeur C doit donner exactement les ids Python." },
+    period: { en: "Oct 2026", fr: "oct. 2026" },
+  },
+  "fraud-detection-alert-budget": {
+    problem: { en: "Evaluate fraud models the way a fraud team uses them, at 0.17 % prevalence.", fr: "Évaluer des modèles de fraude comme une équipe anti-fraude les utilise, à 0,17 % de fraudes." },
+    constraint: { en: "Temporal split, thresholds fixed on validation, only 75 test frauds, so every key number has a bootstrap interval.", fr: "Découpage temporel, seuils fixés sur la validation, seulement 75 fraudes en test : chaque chiffre clé a un intervalle bootstrap." },
+    period: { en: "Oct 2026", fr: "oct. 2026" },
+  },
+  "audio-deepfake-generalization": {
+    problem: { en: "Do deepfake detectors still work on unseen generators, real fakes found online and phone lines?", fr: "Les détecteurs de deepfakes marchent-ils encore sur des générateurs inconnus, de vrais deepfakes en ligne et le téléphone ?" },
+    constraint: { en: "Model choices made on dev only, never on eval; the silence shortcut checked explicitly.", fr: "Choix faits sur dev uniquement, jamais sur eval ; le raccourci du silence vérifié explicitement." },
+    period: { en: "Oct 2026 → ongoing", fr: "oct. 2026 → en cours" },
+  },
+  "eurosat-onboard-transfer": {
+    problem: { en: "Which transfer strategy classifies satellite tiles best with few labels and little compute on board?", fr: "Quelle stratégie de transfert classe le mieux des tuiles satellite avec peu d'étiquettes et peu de calcul à bord ?" },
+    constraint: { en: "Same training images for every configuration at each data fraction; 3 seeds; Kaggle T4 for training.", fr: "Mêmes images pour chaque configuration à chaque fraction ; 3 graines ; entraînement sur Kaggle T4." },
+    period: { en: "Oct 2026 → ongoing", fr: "oct. 2026 → en cours" },
+  },
+  "spam-classic-vs-transformer-edge": {
+    problem: { en: "When is TF-IDF + logistic regression enough, and when is DistilBERT worth its cost?", fr: "Quand TF-IDF + régression logistique suffit-il, et quand DistilBERT vaut-il son coût ?" },
+    constraint: { en: "Duplicates removed before splitting; latency measured one message at a time on CPU.", fr: "Doublons retirés avant le découpage ; latence mesurée message par message sur CPU." },
+    period: { en: "Oct 2026 → ongoing", fr: "oct. 2026 → en cours" },
+  },
+  "lunarlander-dqn-vs-ppo": {
+    problem: { en: "DQN or PPO on LunarLander, judged on several seeds rather than one lucky run?", fr: "DQN ou PPO sur LunarLander, jugés sur plusieurs graines plutôt que sur un essai chanceux ?" },
+    constraint: { en: "Same 1 M-step budget for both algorithms; held-out evaluation episodes.", fr: "Même budget de 1 M de pas pour les deux ; épisodes d'évaluation réservés." },
+    period: { en: "Oct 2026 → ongoing", fr: "oct. 2026 → en cours" },
+  },
+  "optimizers-low-precision": {
+    problem: { en: "What happens to SGD, Momentum, Adam and AdamW when the arithmetic drops to fp16, bf16 or fixed point?", fr: "Que deviennent SGD, Momentum, Adam et AdamW quand le calcul passe en fp16, bf16 ou virgule fixe ?" },
+    constraint: { en: "Optimizers written from scratch and matched against torch.optim before any experiment.", fr: "Optimiseurs écrits de zéro et vérifiés contre torch.optim avant toute expérience." },
+    period: { en: "Oct 2026 → ongoing", fr: "oct. 2026 → en cours" },
+  },
+  "dp-federated-hospitals": {
+    problem: { en: "What does differential privacy cost each of 20 simulated hospitals, not just the average?", fr: "Que coûte la confidentialité différentielle à chacun des 20 hôpitaux simulés, pas seulement en moyenne ?" },
+    constraint: { en: "Laptop CPU only (4 cores, 8 GB); images never leave their hospital.", fr: "CPU de portable uniquement (4 cœurs, 8 Go) ; les images ne quittent jamais leur hôpital." },
+    period: { en: "Oct 2026 → ongoing", fr: "oct. 2026 → en cours" },
+  },
+  "llm-below-2-bits-pi5": {
+    problem: { en: "Which capability breaks first below 2 bits per weight, and is the speed gained worth it?", fr: "Quelle capacité casse en premier sous 2 bits par poids, et la vitesse gagnée en vaut-elle la peine ?" },
+    constraint: { en: "Method and statistics frozen before the first run; measured on a Raspberry Pi 5.", fr: "Méthode et statistiques figées avant le premier essai ; mesures sur Raspberry Pi 5." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "pi5-llm-quant-map": {
+    problem: { en: "What does 2- to 8-bit quantization really cost a small LLM on a Raspberry Pi 5?", fr: "Que coûte vraiment la quantification de 2 à 8 bits à un petit LLM sur Raspberry Pi 5 ?" },
+    constraint: { en: "Every number from a measurement on the board; llama.cpp version pinned.", fr: "Chaque chiffre vient d'une mesure sur la carte ; version de llama.cpp figée." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "md-fpga-codesign": {
+    problem: { en: "Compute bonded forces and the reciprocal PME chain of molecular dynamics in fixed-point hardware.", fr: "Calculer les forces liées et la chaîne PME réciproque de la dynamique moléculaire en matériel virgule fixe." },
+    constraint: { en: "Portable VHDL (target board not fixed yet); results compared against an OpenMM reference.", fr: "VHDL portable (carte cible pas encore fixée) ; résultats comparés à une référence OpenMM." },
+    period: { en: "2026–2027 (M2) → ongoing", fr: "2026–2027 (M2) → en cours" },
+  },
+  "fp8-mac-vhdl": {
+    problem: { en: "Build the basic operator of a neuron, acc ± a × b, in the FP8 format used for AI inference.", fr: "Construire l'opérateur de base d'un neurone, acc ± a × b, au format FP8 utilisé pour l'inférence IA." },
+    constraint: { en: "Small entry-level Cyclone IV FPGA; every block verified by a self-checking testbench.", fr: "Petit FPGA Cyclone IV d'entrée de gamme ; chaque bloc vérifié par un testbench auto-vérifiant." },
+    period: { en: "2025–2026 (M1)", fr: "2025–2026 (M1)" },
+  },
+  "sky130-opamp-sizing-bench": {
+    problem: { en: "Can an optimiser size an op-amp better than a hand design, and does its circuit survive process variation?", fr: "Un optimiseur dimensionne-t-il un ampli op mieux qu'à la main, et son circuit résiste-t-il aux variations du procédé ?" },
+    constraint: { en: "Equal number of ngspice simulations for every method; hypotheses frozen before any optimisation.", fr: "Même nombre de simulations ngspice pour chaque méthode ; hypothèses figées avant toute optimisation." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "analog-imc-error-budget": {
+    problem: { en: "How much hardware imperfection can a neural network take when its products run inside a resistive crossbar?", fr: "Quelle imperfection matérielle un réseau de neurones supporte-t-il quand ses produits tournent dans un crossbar résistif ?" },
+    constraint: { en: "PC only; every expected test value computed by hand first.", fr: "PC uniquement ; chaque valeur attendue des tests calculée d'abord à la main." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "qt6-uart-fpga-api": {
+    problem: { en: "Let a PC application exchange data with an FPGA board without handling serial-port details.", fr: "Permettre à une application PC d'échanger avec une carte FPGA sans gérer les détails du port série." },
+    constraint: { en: "Project under NDA: only my own part, the PC-side API, is published.", fr: "Projet sous confidentialité : seule ma partie, l'API côté PC, est publiée." },
+    period: { en: "2025–2026 (M1)", fr: "2025–2026 (M1)" },
+  },
+  "softplc-pi5-determinism": {
+    problem: { en: "Is a soft-PLC on a stock Linux ARM board deterministic enough to replace a classic PLC?", fr: "Un automate logiciel sur une carte ARM sous Linux est-il assez déterministe pour remplacer un automate classique ?" },
+    constraint: { en: "Success criterion fixed in advance: max jitter ≤ 10 % of a 10 ms cycle over 1 h under load.", fr: "Critère fixé d'avance : gigue max ≤ 10 % d'un cycle de 10 ms sur 1 h en charge." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "plc-drift-twin": {
+    problem: { en: "Catch a drifting part before it fails, on the same Pi as the PLC, without disturbing its cycle.", fr: "Repérer une pièce qui dérive avant la panne, sur le même Pi que l'automate, sans perturber son cycle." },
+    constraint: { en: "Detectors compared at the same false-alarm rate; the twin is never copied from the simulator.", fr: "Détecteurs comparés à taux de fausses alarmes égal ; le jumeau n'est jamais copié du simulateur." },
+    period: { en: "Nov 2026 → ongoing", fr: "nov. 2026 → en cours" },
+  },
+  "health-monitor-iot": {
+    problem: { en: "Follow a patient's vital signs at home without sending medical data to a third-party cloud.", fr: "Suivre les signes vitaux d'un patient à domicile sans envoyer ses données à un cloud tiers." },
+    constraint: { en: "One ESP32 and one Raspberry Pi 5 on the home network.", fr: "Un ESP32 et un Raspberry Pi 5 sur le réseau de la maison." },
+    period: { en: "2024–2025 (Master's thesis)", fr: "2024–2025 (mémoire de Master)" },
+  },
+  "home-assistant-weather-station": {
+    problem: { en: "Show live ESP32 sensor values next to official weather data, reliably.", fr: "Afficher les capteurs ESP32 en direct à côté des données météo officielles, de façon fiable." },
+    constraint: { en: "No backend of my own; the access token never written in the code.", fr: "Aucun serveur à moi ; le jeton d'accès jamais écrit dans le code." },
+    period: { en: "2025–2026 (M1 lab)", fr: "2025–2026 (TP de M1)" },
+  },
+  "smart-house-solar-energy": {
+    problem: { en: "Power an Arduino smart-house model from the sun.", fr: "Alimenter une maquette de maison connectée Arduino à l'énergie solaire." },
+    constraint: { en: "Cheap off-the-shelf parts; the TP4056 charger accepts 8 V at most.", fr: "Pièces bon marché du commerce ; le chargeur TP4056 accepte 8 V au maximum." },
+    period: { en: "2022–2023 (Bachelor's thesis)", fr: "2022–2023 (mémoire de Licence)" },
+  },
+  "simu_ferroviaire": {
+    problem: { en: "Let seven trains share single tracks without ever being on the same section.", fr: "Faire circuler sept trains sur des voies uniques sans jamais être sur la même section." },
+    constraint: { en: "POSIX threads, mutexes, semaphores, pipes and fork only.", fr: "Uniquement threads POSIX, mutex, sémaphores, pipes et fork." },
+    period: { en: "Course project", fr: "Projet de cours" },
+  },
+};
+
+/* Reports and theses (grows over time). */
+window.PUBLICATIONS = [
+  { year: "2026–2027", kind: { en: "Individual report", fr: "Rapport individuel" }, title: { en: "FPGA co-design of a molecular dynamics simulator (bonded forces + PME)", fr: "Co-conception FPGA d'un simulateur de dynamique moléculaire (forces liées + PME)" }, where: { en: "M2 CSEC, University of Lorraine · in progress", fr: "M2 CSEC, Université de Lorraine · en cours" }, link: null },
+  { year: "2026", kind: { en: "Project report", fr: "Rapport de projet" }, title: { en: "FP8 (E4M3) multiply-accumulate unit in VHDL for AI inference", fr: "Unité de multiplication-accumulation FP8 (E4M3) en VHDL pour l'inférence IA" }, where: { en: "M1 CSEC, University of Lorraine · report in French", fr: "M1 CSEC, Université de Lorraine · rapport en français" }, link: "https://github.com/amine-belkacem/fp8-mac-vhdl" },
+  { year: "2025", kind: { en: "Master's thesis, defended June 2025", fr: "Mémoire de Master, soutenu en juin 2025" }, title: { en: "Connected health monitor: ESP32 sensors, Raspberry Pi 5 server, web and mobile apps", fr: "Moniteur de santé connecté : capteurs ESP32, serveur Raspberry Pi 5, applications web et mobile" }, where: { en: "USTHB, Algiers", fr: "USTHB, Alger" }, link: "https://github.com/amine-belkacem/health-monitor-iot" },
+  { year: "2023", kind: { en: "Bachelor's thesis", fr: "Mémoire de Licence" }, title: { en: "Solar power supply for a smart-house model", fr: "Alimentation solaire d'une maquette de maison connectée" }, where: { en: "USTHB, Algiers", fr: "USTHB, Alger" }, link: "https://github.com/amine-belkacem/smart-house-solar-energy" },
+];
+
+/* Blog posts (each one is a static page in blog/). */
+window.POSTS = [
+  { slug: "onnx-runtime-50-lsb-avx2", date: "2026-11-20", min: 4, tag: "Embedded AI",
+    title: { en: "Why ONNX Runtime drifts by up to 50 LSB on my laptop", fr: "Pourquoi ONNX Runtime s'écarte jusqu'à 50 LSB sur mon portable" },
+    summary: { en: "Same int8 model, same input, different answers: the instruction set underneath changes the result.", fr: "Même modèle int8, même entrée, réponses différentes : le jeu d'instructions change le résultat." } },
+  { slug: "tvla-in-5-minutes", date: "2026-11-20", min: 5, tag: "Security",
+    title: { en: "TVLA in 5 minutes: does the power consumption depend on the data?", fr: "La TVLA en 5 minutes : la consommation dépend-elle des données ?" },
+    summary: { en: "A t-test, a fixed plaintext and a coin flip: how leakage assessment works, and the one edge that fooled it.", fr: "Un test t, un texte clair fixe et un pile ou face : comment marche la TVLA, et le front qui l'a trompée." } },
+  { slug: "silence-betrays-deepfakes", date: "2026-11-20", min: 4, tag: "AI",
+    title: { en: "The detector that listened to the silence", fr: "Le détecteur qui écoutait le silence" },
+    summary: { en: "A model that never hears a word reaches 19.6 % EER on ASVspoof. What that says about benchmark scores.", fr: "Un modèle qui n'entend aucun mot atteint 19,6 % d'EER sur ASVspoof. Ce que ça dit des scores de benchmark." } },
+  { slug: "adam-divides-by-zero-fp16", date: "2026-11-20", min: 4, tag: "AI hardware",
+    title: { en: "Adam divides by zero in fp16 (and AdamW turns into Adam)", fr: "Adam divise par zéro en fp16 (et AdamW devient Adam)" },
+    summary: { en: "Two lines of arithmetic explain why low-precision training fails, and the one-line fix.", fr: "Deux lignes d'arithmétique expliquent pourquoi l'entraînement en basse précision échoue, et la correction en une ligne." } },
+];
+
+/* Interactive demos (static pages in demo/). */
+window.DEMOS = [
+  { slug: "cpa", project: "aes128-sidechannel-lab",
+    title: { en: "Break an AES key byte yourself", fr: "Cassez vous-même un octet de clé AES" },
+    summary: { en: "Move the noise and trace sliders and watch a correlation power analysis find the key, or fail.", fr: "Bougez le bruit et le nombre de traces, et regardez une analyse de corrélation trouver la clé, ou échouer." } },
+  { slug: "bpe", project: "french-bpe-tokenizer",
+    title: { en: "See my French tokenizer cut your text", fr: "Voyez mon tokenizer français découper votre texte" },
+    summary: { en: "Type any sentence: my 32k French BPE model splits it into tokens, live in your browser.", fr: "Tapez une phrase : mon modèle BPE français 32k la découpe en tokens, en direct dans votre navigateur." } },
+];
+
 window.PROJECTS.forEach((p) => {
   if (p.repo === undefined) p.repo = GH + p.id;
+  Object.assign(p, window.SHEETS[p.id] || {});
 });

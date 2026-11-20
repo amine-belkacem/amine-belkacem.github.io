@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="TVLA in 5 minutes – Mohamed Amine Belkacem" data-fr="La TVLA en 5 minutes – Mohamed Amine Belkacem">TVLA in 5 minutes – Mohamed Amine Belkacem</title>
+  <meta name="description" content="Test Vector Leakage Assessment explained on a real AES-128 core in VHDL: Welch t-test, fixed vs random plaintexts, the 4.5 threshold, and the clock edge that fooled the test.">
+  <meta property="og:title" content="TVLA in 5 minutes: does the power consumption depend on the data?">
+  <meta property="og:image" content="https://amine-belkacem.github.io/assets/og-card.png">
+  <link rel="canonical" href="https://amine-belkacem.github.io/blog/tvla-in-5-minutes.html">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/page.css?v=3.0">
+</head>
+<body>
+  <header class="pbar">
+    <a class="plogo" href="../" data-keep-lang><i aria-hidden="true"></i>MAB</a>
+    <span class="pcrumb"><a href="./" data-keep-lang>blog</a> / tvla-in-5-minutes</span>
+    <button class="pbtn" type="button" data-lang-btn>FR</button>
+  </header>
+
+  <main class="wrap">
+    <article data-l="en">
+      <p class="kick">Hardware security · side channels</p>
+      <h1>TVLA in 5 minutes: does the power consumption depend on the data?</h1>
+      <p class="meta"><span>20 November 2026</span><span>5 min read</span><span>Project: aes128-sidechannel-lab</span></p>
+      <p class="lede">A side-channel attack answers a narrow question: "can <em>this</em> attack recover the key?". Test Vector Leakage Assessment (TVLA) asks a broader one: "does the power consumption depend on the data at all?". Here is how it works, measured on my own AES-128 core.</p>
+
+      <h2>The recipe</h2>
+      <ol>
+        <li>Run many encryptions. For each one, flip a coin: encrypt either a <strong>fixed</strong> plaintext, or a <strong>random</strong> one.</li>
+        <li>Record the power trace of each encryption (here: simulated from the VHDL core, with Gaussian noise σ = 8 added).</li>
+        <li>At every point in time (here: every clock edge), compare the two groups with <strong>Welch's t-test</strong>.</li>
+        <li>If |t| &gt; 4.5 anywhere, the device leaks.</li>
+      </ol>
+      <p>The logic: if the consumption did not depend on the data, the fixed group and the random group would have the same mean, and t would stay small. The threshold 4.5 keeps the false-alarm rate very low even when you test thousands of points.</p>
+      <p>A control is essential: split the <em>random</em> group in two at random and run the same test. Those two halves really are identical in distribution, so that test must stay below 4.5. If it does not, the setup is broken, not the device.</p>
+
+      <h2>On my unprotected core (40,000 encryptions)</h2>
+      <ul>
+        <li>The core <strong>leaks on 10 of the 11 clock edges</strong>, up to |t| = <strong>133</strong> on the last round.</li>
+        <li>The test crosses 4.5 after only <strong>43 traces</strong>.</li>
+        <li>The control never exceeds <strong>1.92</strong>. The setup is sound.</li>
+      </ul>
+
+      <h2>The edge that fooled the test</h2>
+      <p>One edge passes: round 4, t = −0.8. That is <strong>not</strong> protection. For the fixed plaintext, the state register happens to flip exactly <strong>64 bits</strong> on that edge, which is precisely the average for random plaintexts (64.06). The two groups have the same mean, so a test on means cannot separate them, even though the leakage is there.</p>
+      <div class="callout"><strong>TVLA can miss a leak. It cannot invent one.</strong> A pass on one point means "no difference of means here", never "secure". I checked this one from the register values before writing it down.</div>
+
+      <h2>On a countermeasure</h2>
+      <p>The first countermeasure I built inserts a random number of dummy rounds (up to D = 15) before the real ones. With 40,000 traces and no added noise:</p>
+      <table>
+        <thead><tr><th></th><th>D = 0</th><th>D = 15</th></tr></thead>
+        <tbody>
+          <tr><td>max |t| (outside the plaintext-load edge)</td><td>290</td><td>21.8</td></tr>
+          <tr><td>traces until |t| &gt; 4.5</td><td>20</td><td>2,238</td></tr>
+        </tbody>
+      </table>
+      <p>Hiding lowers the statistic a lot, but the protected core <strong>still fails TVLA</strong>, as it should: the leakage is still there, only spread over time. Against a real key-recovery attack, it costs an unprofiled attacker 28 times more traces, but a profiled attacker only 3.7 times more.</p>
+      <p>That is the value of TVLA: it does not tell you how hard an attack is, but it tells you quickly and honestly whether there is anything to attack.</p>
+    </article>
+
+    <article data-l="fr">
+      <p class="kick">Sécurité matérielle · canaux auxiliaires</p>
+      <h1>La TVLA en 5 minutes : la consommation dépend-elle des données ?</h1>
+      <p class="meta"><span>20 novembre 2026</span><span>5 min de lecture</span><span>Projet : aes128-sidechannel-lab</span></p>
+      <p class="lede">Une attaque par canal auxiliaire répond à une question étroite : « <em>cette</em> attaque retrouve-t-elle la clé ? ». La TVLA (Test Vector Leakage Assessment) pose une question plus large : « la consommation dépend-elle des données, tout simplement ? ». Voici comment elle fonctionne, mesurée sur mon propre cœur AES-128.</p>
+
+      <h2>La recette</h2>
+      <ol>
+        <li>Lancer beaucoup de chiffrements. Pour chacun, tirer à pile ou face : chiffrer un texte clair <strong>fixe</strong>, ou un texte <strong>aléatoire</strong>.</li>
+        <li>Enregistrer la trace de consommation de chaque chiffrement (ici simulée depuis le cœur VHDL, avec un bruit gaussien σ = 8).</li>
+        <li>À chaque instant (ici, chaque front d'horloge), comparer les deux groupes avec un <strong>test t de Welch</strong>.</li>
+        <li>Si |t| &gt; 4,5 quelque part, le circuit fuit.</li>
+      </ol>
+      <p>L'idée : si la consommation ne dépendait pas des données, les deux groupes auraient la même moyenne et t resterait petit. Le seuil de 4,5 garde un taux de fausse alarme très bas même en testant des milliers de points.</p>
+      <p>Un témoin est indispensable : couper le groupe <em>aléatoire</em> en deux au hasard et refaire le même test. Ces deux moitiés ont vraiment la même distribution, donc ce test doit rester sous 4,5. Sinon, c'est le montage qui est faux, pas le circuit.</p>
+
+      <h2>Sur mon cœur non protégé (40 000 chiffrements)</h2>
+      <ul>
+        <li>Le cœur <strong>fuit sur 10 des 11 fronts d'horloge</strong>, jusqu'à |t| = <strong>133</strong> au dernier tour.</li>
+        <li>Le test dépasse 4,5 après seulement <strong>43 traces</strong>.</li>
+        <li>Le témoin ne dépasse jamais <strong>1,92</strong>. Le montage est sain.</li>
+      </ul>
+
+      <h2>Le front qui a trompé le test</h2>
+      <p>Un front passe : le tour 4, t = −0,8. Ce n'est <strong>pas</strong> une protection. Pour le texte clair fixe, le registre d'état bascule exactement <strong>64 bits</strong> sur ce front, soit pile la moyenne pour des textes aléatoires (64,06). Les deux groupes ont la même moyenne, donc un test sur les moyennes ne peut pas les séparer, alors que la fuite est bien là.</p>
+      <div class="callout"><strong>La TVLA peut rater une fuite. Elle ne peut pas en inventer une.</strong> Un point qui passe veut dire « pas de différence de moyenne ici », jamais « sûr ». J'ai vérifié celui-ci à partir des valeurs du registre avant de l'écrire.</div>
+
+      <h2>Sur une contre-mesure</h2>
+      <p>La première contre-mesure que j'ai construite insère un nombre aléatoire de tours factices (jusqu'à D = 15) avant les vrais. Avec 40 000 traces, sans bruit ajouté :</p>
+      <table>
+        <thead><tr><th></th><th>D = 0</th><th>D = 15</th></tr></thead>
+        <tbody>
+          <tr><td>|t| max (hors front de chargement du texte clair)</td><td>290</td><td>21,8</td></tr>
+          <tr><td>traces avant |t| &gt; 4,5</td><td>20</td><td>2 238</td></tr>
+        </tbody>
+      </table>
+      <p>Le masquage temporel fait beaucoup baisser la statistique, mais le cœur protégé <strong>échoue toujours à la TVLA</strong>, et c'est normal : la fuite est toujours là, seulement étalée dans le temps. Face à une vraie attaque, il coûte 28 fois plus de traces à un attaquant non profilé, mais seulement 3,7 fois plus à un attaquant profilé.</p>
+      <p>C'est tout l'intérêt de la TVLA : elle ne dit pas à quel point une attaque est difficile, mais elle dit vite et honnêtement s'il y a quelque chose à attaquer.</p>
+    </article>
+
+    <div class="endbox">
+      <p data-l="en">Try a correlation attack yourself, live in the browser.</p>
+      <p data-l="fr">Essayez vous-même une attaque par corrélation, en direct dans le navigateur.</p>
+      <a class="pbtn primary" href="../demo/cpa.html" data-keep-lang><span data-l="en">Open the CPA demo</span><span data-l="fr">Ouvrir la démo CPA</span></a>
+      <a class="pbtn" href="https://github.com/amine-belkacem/aes128-sidechannel-lab" target="_blank" rel="noopener"><span data-l="en">Repository</span><span data-l="fr">Dépôt</span></a>
+    </div>
+  </main>
+
+  <footer class="pfoot"><span>© 2026 Mohamed Amine Belkacem</span><a href="./" data-keep-lang><span data-l="en">All articles</span><span data-l="fr">Tous les articles</span></a><a href="../" data-keep-lang>amine-belkacem.github.io</a></footer>
+  <script src="../js/data.js?v=3.0" defer></script>
+  <script src="../js/page.js?v=3.0" defer></script>
+</body>
+</html>

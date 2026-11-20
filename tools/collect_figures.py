@@ -1,4 +1,4 @@
-"""Copy one lead figure per project into assets/img/, resized for the web.
+"""Copy one lead figure per project into assets/img/ as WebP (960 px + a 480 px version for phones).
 
 Run from the repository root:  python tools/collect_figures.py
 Source repositories: folder given by the PORTFOLIO_REPOS environment variable,
@@ -15,14 +15,13 @@ REPOS = Path(os.environ.get(
     Path.home() / "Desktop" / "les memoires et projet pour le cv" / "github",
 ))
 OUT = ROOT / "assets" / "img"
-MAX_W = 1100
+MAX_W = 960
 
 FIGURES = {
     "aes128-sidechannel-lab": "figures/m2_correlation_vs_guess.png",
     "audio-deepfake-generalization": "results/m5/channels_eer.png",
     "autorange-current-profiler": "docs/figures/j1_g1_bode.png",
     "eurosat-onboard-transfer": "figures/data_efficiency.png",
-    "face-attendance-raspberry-pi": "docs/images/hardware-setup.jpg",
     "fp8-mac-vhdl": "docs/architecture.png",
     "fraud-detection-alert-budget": "figures/stress_test.png",
     "french-bpe-tokenizer": "figures/comparison_fertility.png",
@@ -47,14 +46,14 @@ def main() -> None:
             print(f"MISSING {src}")
             continue
         img = Image.open(src)
+        img = img.convert("RGB") if src.suffix.lower() in (".jpg", ".jpeg") else img.convert("RGBA")
         if img.width > MAX_W:
             img = img.resize((MAX_W, round(img.height * MAX_W / img.width)), Image.LANCZOS)
-        is_photo = src.suffix.lower() in (".jpg", ".jpeg")
-        dst = OUT / f"{repo}.{'jpg' if is_photo else 'png'}"
-        if is_photo:
-            img.convert("RGB").save(dst, quality=85, optimize=True)
-        else:
-            img.save(dst, optimize=True)
+        dst = OUT / f"{repo}.webp"
+        img.save(dst, "WEBP", quality=80, method=6)
+        if img.width > 480:
+            img.resize((480, round(img.height * 480 / img.width)), Image.LANCZOS).save(OUT / f"{repo}-480.webp", "WEBP", quality=78, method=6)
+        # the size goes in the DIMS table of js/app.js (lets the browser reserve the space)
         print(f"{dst.name:45s} {dst.stat().st_size // 1024:5d} KB")
 
 

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="The detector that listened to the silence – Mohamed Amine Belkacem" data-fr="Le détecteur qui écoutait le silence – Mohamed Amine Belkacem">The detector that listened to the silence – Mohamed Amine Belkacem</title>
+  <meta name="description" content="A model that never hears a word reaches 19.6 % EER on ASVspoof 2019. What the silence shortcut does to audio deepfake detectors, measured.">
+  <meta property="og:title" content="The detector that listened to the silence">
+  <meta property="og:image" content="https://amine-belkacem.github.io/assets/og-card.png">
+  <link rel="canonical" href="https://amine-belkacem.github.io/blog/silence-betrays-deepfakes.html">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/page.css?v=3.0">
+</head>
+<body>
+  <header class="pbar">
+    <a class="plogo" href="../" data-keep-lang><i aria-hidden="true"></i>MAB</a>
+    <span class="pcrumb"><a href="./" data-keep-lang>blog</a> / silence-betrays-deepfakes</span>
+    <button class="pbtn" type="button" data-lang-btn>FR</button>
+  </header>
+
+  <main class="wrap">
+    <article data-l="en">
+      <p class="kick">AI · audio deepfakes</p>
+      <h1>The detector that listened to the silence</h1>
+      <p class="meta"><span>20 November 2026</span><span>4 min read</span><span>Project: audio-deepfake-generalization</span></p>
+      <p class="lede">My best deepfake detector reached 1.21 % equal error rate (EER) on ASVspoof 2019. That number looked too good, so I tried to break it. A model that never hears a single word got 19.6 %.</p>
+
+      <h2>The suspicious number</h2>
+      <p>I trained detectors on ASVspoof 2019 LA, a standard benchmark of real and synthetic speech. A linear probe on layer 3 of a frozen wav2vec 2.0 model reached <strong>1.21 % EER</strong> on the evaluation set. But the features are pooled over the whole recording, silence included, and this dataset is known to leak the label through the silence at the start and end of each file.</p>
+
+      <h2>A detector that only measures silence</h2>
+      <p>So I built the dumbest possible detector: a logistic regression on two numbers, the length of the leading and trailing silence. It never hears the voice.</p>
+      <ul>
+        <li>It reaches <strong>19.6 % EER</strong> on the evaluation set.</li>
+        <li>The median leading silence is <strong>0.74 s for real voices</strong> and <strong>0.04 s for spoofs</strong>.</li>
+      </ul>
+      <p>That is not a voice detector. It is a recording-pipeline detector, and it works far too well.</p>
+
+      <h2>Removing the silence</h2>
+      <p>I trimmed the silence and retrained every system the same way:</p>
+      <table>
+        <thead><tr><th>System</th><th>eval, as is</th><th>eval, silence removed</th></tr></thead>
+        <tbody>
+          <tr><td>LFCC + GMM</td><td>10.48 %</td><td>21.28 %</td></tr>
+          <tr><td>LFCC + LCNN</td><td>4.86 %</td><td>17.40 %</td></tr>
+          <tr><td>wav2vec 2.0 + probe</td><td>1.21 %</td><td><strong>7.68 %</strong></td></tr>
+        </tbody>
+      </table>
+      <p><strong>Every system was using the silence</strong>, wav2vec 2.0 included. About 8 % is a more honest benchmark figure for it than 1.2 %. On In-the-Wild, a set of real deepfakes of public figures collected online, which has no such leak, the score barely moves (22.44 % → 22.71 %). That confirms the diagnosis.</p>
+
+      <h2>One more surprise</h2>
+      <p>Filtering out frequency bands showed that the wav2vec 2.0 detector relies almost only on <strong>0–1 kHz</strong>: removing that band multiplies its EER by 7 to 9, while removing any band above 2 kHz changes nothing. Is it the voice, or background noise in that band? I have not answered that yet, and I say so in the repository.</p>
+      <div class="callout"><strong>Takeaway.</strong> A low error rate on a benchmark tells you the model separates the two classes of <em>that dataset</em>, not how. Before trusting a score, build the shortcut detector on purpose, and test on data collected another way.</div>
+    </article>
+
+    <article data-l="fr">
+      <p class="kick">IA · deepfakes audio</p>
+      <h1>Le détecteur qui écoutait le silence</h1>
+      <p class="meta"><span>20 novembre 2026</span><span>4 min de lecture</span><span>Projet : audio-deepfake-generalization</span></p>
+      <p class="lede">Mon meilleur détecteur de deepfakes atteignait 1,21 % de taux d'égale erreur (EER) sur ASVspoof 2019. Le chiffre semblait trop beau, alors j'ai essayé de le casser. Un modèle qui n'entend pas un seul mot a obtenu 19,6 %.</p>
+
+      <h2>Le chiffre suspect</h2>
+      <p>J'ai entraîné des détecteurs sur ASVspoof 2019 LA, un benchmark classique de voix réelles et synthétiques. Une sonde linéaire sur la couche 3 d'un wav2vec 2.0 figé atteignait <strong>1,21 % d'EER</strong> sur l'ensemble d'évaluation. Mais les descripteurs sont moyennés sur tout l'enregistrement, silences compris, et ce jeu de données est connu pour trahir l'étiquette par le silence au début et à la fin des fichiers.</p>
+
+      <h2>Un détecteur qui ne mesure que le silence</h2>
+      <p>J'ai donc construit le détecteur le plus bête possible : une régression logistique sur deux nombres, la durée du silence au début et à la fin. Il n'entend jamais la voix.</p>
+      <ul>
+        <li>Il atteint <strong>19,6 % d'EER</strong> sur l'évaluation.</li>
+        <li>Le silence de début médian est de <strong>0,74 s pour les vraies voix</strong> et <strong>0,04 s pour les fausses</strong>.</li>
+      </ul>
+      <p>Ce n'est pas un détecteur de voix. C'est un détecteur de chaîne d'enregistrement, et il marche beaucoup trop bien.</p>
+
+      <h2>En retirant le silence</h2>
+      <p>J'ai coupé les silences et réentraîné chaque système de la même façon :</p>
+      <table>
+        <thead><tr><th>Système</th><th>éval, tel quel</th><th>éval, sans silence</th></tr></thead>
+        <tbody>
+          <tr><td>LFCC + GMM</td><td>10,48 %</td><td>21,28 %</td></tr>
+          <tr><td>LFCC + LCNN</td><td>4,86 %</td><td>17,40 %</td></tr>
+          <tr><td>wav2vec 2.0 + sonde</td><td>1,21 %</td><td><strong>7,68 %</strong></td></tr>
+        </tbody>
+      </table>
+      <p><strong>Tous les systèmes utilisaient le silence</strong>, wav2vec 2.0 compris. Environ 8 % est un chiffre plus honnête que 1,2 %. Sur In-the-Wild, un ensemble de vrais deepfakes de personnalités trouvés en ligne, sans ce biais, le score bouge à peine (22,44 % → 22,71 %). Ça confirme le diagnostic.</p>
+
+      <h2>Encore une surprise</h2>
+      <p>En filtrant des bandes de fréquence, on voit que le détecteur wav2vec 2.0 s'appuie presque uniquement sur <strong>0–1 kHz</strong> : retirer cette bande multiplie son EER par 7 à 9, alors que retirer n'importe quelle bande au-dessus de 2 kHz ne change rien. La voix, ou le bruit de fond dans cette bande ? Je n'ai pas encore la réponse, et je le dis dans le dépôt.</p>
+      <div class="callout"><strong>À retenir.</strong> Un faible taux d'erreur sur un benchmark montre que le modèle sépare les deux classes de <em>ce jeu de données</em>, pas comment il le fait. Avant de croire un score, construisez exprès le détecteur « raccourci », et testez sur des données collectées autrement.</div>
+    </article>
+
+    <div class="endbox">
+      <p data-l="en">All numbers come from the scripts in the repository.</p>
+      <p data-l="fr">Tous les chiffres sortent des scripts du dépôt.</p>
+      <a class="pbtn primary" href="https://github.com/amine-belkacem/audio-deepfake-generalization" target="_blank" rel="noopener"><span data-l="en">View the repository</span><span data-l="fr">Voir le dépôt</span></a>
+    </div>
+  </main>
+
+  <footer class="pfoot"><span>© 2026 Mohamed Amine Belkacem</span><a href="./" data-keep-lang><span data-l="en">All articles</span><span data-l="fr">Tous les articles</span></a><a href="../" data-keep-lang>amine-belkacem.github.io</a></footer>
+  <script src="../js/data.js?v=3.0" defer></script>
+  <script src="../js/page.js?v=3.0" defer></script>
+</body>
+</html>

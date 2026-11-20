@@ -1,0 +1,17 @@
+{
+  "name": "amine-belkacem-portfolio",
+  "private": true,
+  "type": "module",
+  "description": "Portfolio site. Plain HTML/CSS/JS; this file only holds the build tools.",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "poster": "node tools/make_poster.mjs",
+    "lighthouse": "node tools/lighthouse.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.2",
+    "lighthouse": "12.8.2",
+    "serve": "14.2.4",
+    "three": "0.160.0"
+  }
+}

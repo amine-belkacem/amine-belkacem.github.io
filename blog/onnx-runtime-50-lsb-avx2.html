@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="Why ONNX Runtime drifts by up to 50 LSB on my laptop – Mohamed Amine Belkacem" data-fr="Pourquoi ONNX Runtime s'écarte jusqu'à 50 LSB sur mon portable – Mohamed Amine Belkacem">Why ONNX Runtime drifts by up to 50 LSB on my laptop – Mohamed Amine Belkacem</title>
+  <meta name="description" content="Same int8 model, same input, different answers: on an AVX2 CPU without VNNI, ONNX Runtime saturates pairs of products to int16. Measured on a EuroSAT CNN.">
+  <meta property="og:title" content="Why ONNX Runtime drifts by up to 50 LSB on my laptop">
+  <meta property="og:image" content="https://amine-belkacem.github.io/assets/og-card.png">
+  <link rel="canonical" href="https://amine-belkacem.github.io/blog/onnx-runtime-50-lsb-avx2.html">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/page.css?v=3.0">
+</head>
+<body>
+  <header class="pbar">
+    <a class="plogo" href="../" data-keep-lang><i aria-hidden="true"></i>MAB</a>
+    <span class="pcrumb"><a href="./" data-keep-lang>blog</a> / onnx-runtime-50-lsb-avx2</span>
+    <button class="pbtn" type="button" data-lang-btn>FR</button>
+  </header>
+
+  <main class="wrap">
+    <article data-l="en">
+      <p class="kick">Embedded AI · int8 inference</p>
+      <h1>Why ONNX Runtime drifts by up to 50 LSB on my laptop</h1>
+      <p class="meta"><span>20 November 2026</span><span>4 min read</span><span>Project: int8-neon-inference-pi5</span></p>
+      <p class="lede">I am writing my own int8 inference engine in C for a small EuroSAT land-use CNN. Before writing any C, I needed a reference I could trust. ONNX Runtime was supposed to be that reference. On my laptop, it gave a different answer depending on one setting.</p>
+
+      <h2>The setup</h2>
+      <p>The model is an int8 ONNX graph in QDQ format. I turned it into 22 integer operations and ran them in NumPy with nothing but integer arithmetic: int8 activations, int32 accumulators, and a fixed-point requantization <code>(x * m0 + 2^(s-1)) &gt;&gt; s</code>. That is the definition my C engine has to match bit for bit.</p>
+      <p>Then I compared it with ONNX Runtime on the 4,050 test tiles.</p>
+
+      <h2>With graph optimisations off: almost perfect</h2>
+      <p>ONNX Runtime evaluates the QDQ graph op by op in float32. My reference predicts the same class on <strong>all 4,050 tiles</strong>, and <strong>99.90 %</strong> of the 40,500 int8 logits are identical. The other 40 are off by exactly 1 LSB: rounding ties (ONNX Runtime rounds half to even, I round half up) and float32 error close to a tie. Fine.</p>
+
+      <h2>With the default optimisations: a different model</h2>
+      <p>Same model, same inputs, default settings. Only <strong>73 %</strong> of the logits were identical, some were off by <strong>50 LSB</strong>, and the top-1 class changed on <strong>10 tiles</strong>.</p>
+      <p>Dumping the optimised graph showed that ONNX Runtime had fused each DQ → Conv → Q into a <code>QLinearConv</code>. That is expected. The size of the gap was not.</p>
+
+      <h2>The cause is the CPU</h2>
+      <p>My laptop has an AMD Ryzen 3 7320U: AVX2, but no AVX-VNNI. On that instruction set, the int8 kernel multiplies uint8 activations by int8 weights with <code>VPMADDUBSW</code>. That instruction adds two neighbouring products and <strong>saturates the sum to int16</strong>.</p>
+      <pre>255 × 127 × 2 = 64,770   &gt;   32,767  (int16 max)</pre>
+      <p>So whenever two large activations meet two large weights, the partial sum is clipped before it ever reaches the int32 accumulator.</p>
+      <p>To check the explanation, I added that saturation to my reference (a diagnostic-only version of the convolution). It then matches ONNX Runtime's optimised output on <strong>99.94 %</strong> of the logits, with the rest within 3 LSB. On GitHub's CI runner, whose CPU has VNNI, the optimised path stays within 1 LSB of my reference. The hypothesis holds on both machines.</p>
+
+      <h2>Why nobody notices</h2>
+      <p>Accuracy barely moves: <strong>98.40 % vs 98.42 %</strong>. If you only look at the accuracy, the two runs look identical. If you compare outputs byte for byte, they are not the same model.</p>
+      <div class="callout"><strong>Takeaway.</strong> "ONNX Runtime int8" is not one well-defined result. It depends on the instruction set underneath. If you validate a quantized model, validate it on the CPU it will run on, and compare outputs, not only accuracy.</div>
+      <p>That is why the comparison that counts for my engine will be made on the Raspberry Pi 5: ARM builds use different kernels, and that is the target.</p>
+    </article>
+
+    <article data-l="fr">
+      <p class="kick">IA embarquée · inférence int8</p>
+      <h1>Pourquoi ONNX Runtime s'écarte jusqu'à 50 LSB sur mon portable</h1>
+      <p class="meta"><span>20 novembre 2026</span><span>4 min de lecture</span><span>Projet : int8-neon-inference-pi5</span></p>
+      <p class="lede">J'écris mon propre moteur d'inférence int8 en C pour un petit CNN de classification d'images satellite (EuroSAT). Avant d'écrire la moindre ligne de C, il me fallait une référence fiable. ONNX Runtime devait être cette référence. Sur mon portable, sa réponse changeait selon un seul réglage.</p>
+
+      <h2>Le montage</h2>
+      <p>Le modèle est un graphe ONNX int8 au format QDQ. Je l'ai transformé en 22 opérations entières, exécutées en NumPy uniquement en arithmétique entière : activations int8, accumulateurs int32 et une requantification en virgule fixe <code>(x * m0 + 2^(s-1)) &gt;&gt; s</code>. C'est la définition que mon moteur C devra reproduire au bit près.</p>
+      <p>Puis je l'ai comparée à ONNX Runtime sur les 4 050 tuiles de test.</p>
+
+      <h2>Optimisations du graphe désactivées : presque parfait</h2>
+      <p>ONNX Runtime évalue alors le graphe QDQ opération par opération en float32. Ma référence prédit la même classe sur <strong>les 4 050 tuiles</strong>, et <strong>99,90 %</strong> des 40 500 logits int8 sont identiques. Les 40 autres diffèrent d'exactement 1 LSB : égalités d'arrondi (ONNX Runtime arrondit au pair, moi vers le haut) et erreur float32 près d'une égalité. Rien d'anormal.</p>
+
+      <h2>Optimisations par défaut : un autre modèle</h2>
+      <p>Même modèle, mêmes entrées, réglages par défaut. Seulement <strong>73 %</strong> des logits étaient identiques, certains s'écartaient de <strong>50 LSB</strong>, et la classe prédite changeait sur <strong>10 tuiles</strong>.</p>
+      <p>En inspectant le graphe optimisé, on voit qu'ONNX Runtime a fusionné chaque DQ → Conv → Q en <code>QLinearConv</code>. C'est attendu. L'ampleur de l'écart, non.</p>
+
+      <h2>La cause : le processeur</h2>
+      <p>Mon portable a un AMD Ryzen 3 7320U : AVX2, mais pas AVX-VNNI. Sur ce jeu d'instructions, le noyau int8 multiplie les activations uint8 par les poids int8 avec <code>VPMADDUBSW</code>. Cette instruction additionne deux produits voisins et <strong>sature la somme sur 16 bits</strong>.</p>
+      <pre>255 × 127 × 2 = 64 770   &gt;   32 767  (maximum int16)</pre>
+      <p>Dès que deux grandes activations rencontrent deux grands poids, la somme partielle est écrêtée avant même d'atteindre l'accumulateur int32.</p>
+      <p>Pour vérifier, j'ai ajouté cette saturation à ma référence (une version de diagnostic de la convolution). Elle colle alors à la sortie optimisée d'ONNX Runtime sur <strong>99,94 %</strong> des logits, le reste à moins de 3 LSB. Sur la machine de CI de GitHub, dont le processeur a VNNI, le chemin optimisé reste à 1 LSB de ma référence. L'hypothèse tient sur les deux machines.</p>
+
+      <h2>Pourquoi personne ne le remarque</h2>
+      <p>La précision bouge à peine : <strong>98,40 % contre 98,42 %</strong>. À ne regarder que la précision, les deux exécutions semblent identiques. En comparant les sorties octet par octet, ce n'est pas le même modèle.</p>
+      <div class="callout"><strong>À retenir.</strong> « ONNX Runtime int8 » n'est pas un résultat unique : il dépend du jeu d'instructions. Pour valider un modèle quantifié, validez-le sur le processeur cible, et comparez les sorties, pas seulement la précision.</div>
+      <p>C'est pour ça que la comparaison qui compte pour mon moteur se fera sur le Raspberry Pi 5 : les versions ARM utilisent d'autres noyaux, et c'est la cible.</p>
+    </article>
+
+    <div class="endbox">
+      <p data-l="en">Code, data and the comparison script are in the repository.</p>
+      <p data-l="fr">Le code, les données et le script de comparaison sont dans le dépôt.</p>
+      <a class="pbtn primary" href="https://github.com/amine-belkacem/int8-neon-inference-pi5" target="_blank" rel="noopener"><span data-l="en">View the repository</span><span data-l="fr">Voir le dépôt</span></a>
+    </div>
+  </main>
+
+  <footer class="pfoot"><span>© 2026 Mohamed Amine Belkacem</span><a href="./" data-keep-lang><span data-l="en">All articles</span><span data-l="fr">Tous les articles</span></a><a href="../" data-keep-lang>amine-belkacem.github.io</a></footer>
+  <script src="../js/data.js?v=3.0" defer></script>
+  <script src="../js/page.js?v=3.0" defer></script>
+</body>
+</html>

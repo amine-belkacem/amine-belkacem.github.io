@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="Articles – Mohamed Amine Belkacem" data-fr="Articles – Mohamed Amine Belkacem">Articles – Mohamed Amine Belkacem</title>
+  <meta name="description" content="Short technical write-ups from my projects: int8 inference, side-channel leakage assessment, audio deepfake detection, low-precision training.">
+  <meta property="og:title" content="Articles – Mohamed Amine Belkacem">
+  <meta property="og:image" content="https://amine-belkacem.github.io/assets/og-card.png">
+  <link rel="canonical" href="https://amine-belkacem.github.io/blog/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/page.css?v=3.0">
+</head>
+<body>
+  <header class="pbar">
+    <a class="plogo" href="../" data-keep-lang><i aria-hidden="true"></i>MAB</a>
+    <span class="pcrumb">blog</span>
+    <button class="pbtn" type="button" data-lang-btn>FR</button>
+  </header>
+  <main class="wrap">
+    <p class="kick"><span data-l="en">Writing</span><span data-l="fr">Articles</span></p>
+    <h1><span data-l="en">What I learned while measuring</span><span data-l="fr">Ce que j'ai appris en mesurant</span></h1>
+    <p class="lede"><span data-l="en">Short write-ups from my projects. Every number comes from the linked repository.</span><span data-l="fr">De courts articles tirés de mes projets. Chaque chiffre vient du dépôt lié.</span></p>
+    <div class="posts" id="posts"></div>
+    <div class="endbox">
+      <p><span data-l="en">Prefer to play with something?</span><span data-l="fr">Vous préférez manipuler ?</span></p>
+      <a class="pbtn primary" href="../demo/cpa.html" data-keep-lang><span data-l="en">AES attack demo</span><span data-l="fr">Démo d'attaque AES</span></a>
+      <a class="pbtn" href="../demo/bpe.html" data-keep-lang><span data-l="en">Tokenizer demo</span><span data-l="fr">Démo du tokenizer</span></a>
+    </div>
+  </main>
+  <footer class="pfoot"><span>© 2026 Mohamed Amine Belkacem</span><a href="../" data-keep-lang>amine-belkacem.github.io</a></footer>
+  <script src="../js/data.js?v=3.0" defer></script>
+  <script src="../js/page.js?v=3.0" defer></script>
+  <script>
+    /* list built from window.POSTS in js/data.js, so adding a post there adds it here and on the home page */
+    addEventListener("DOMContentLoaded", () => {
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+      const draw = () => {
+        const L = window.PAGE ? PAGE.lang : "en";
+        const d = (iso) => new Date(iso + "T12:00:00").toLocaleDateString(L === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
+        document.getElementById("posts").innerHTML = (window.POSTS || []).map((p) => `
+          <a class="post" href="${p.slug}.html?lang=${L}">
+            <span class="m">${esc(p.tag)} · ${esc(d(p.date))} · ${p.min} min</span>
+            <span class="t">${esc(p.title[L])}</span><span class="s">${esc(p.summary[L])}</span></a>`).join("");
+      };
+      draw(); document.addEventListener("langchange", draw);
+    });
+  </script>
+</body>
+</html>

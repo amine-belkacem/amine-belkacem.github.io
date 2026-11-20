@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="Adam divides by zero in fp16 – Mohamed Amine Belkacem" data-fr="Adam divise par zéro en fp16 – Mohamed Amine Belkacem">Adam divides by zero in fp16 – Mohamed Amine Belkacem</title>
+  <meta name="description" content="Why Adam fails in every fp16 run and AdamW becomes Adam bit for bit in 16-bit formats: two lines of arithmetic, 600 training runs, and the fix.">
+  <meta property="og:title" content="Adam divides by zero in fp16 (and AdamW turns into Adam)">
+  <meta property="og:image" content="https://amine-belkacem.github.io/assets/og-card.png">
+  <link rel="canonical" href="https://amine-belkacem.github.io/blog/adam-divides-by-zero-fp16.html">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/page.css?v=3.0">
+</head>
+<body>
+  <header class="pbar">
+    <a class="plogo" href="../" data-keep-lang><i aria-hidden="true"></i>MAB</a>
+    <span class="pcrumb"><a href="./" data-keep-lang>blog</a> / adam-divides-by-zero-fp16</span>
+    <button class="pbtn" type="button" data-lang-btn>FR</button>
+  </header>
+
+  <main class="wrap">
+    <article data-l="en">
+      <p class="kick">AI hardware · low precision</p>
+      <h1>Adam divides by zero in fp16 (and AdamW turns into Adam)</h1>
+      <p class="meta"><span>20 November 2026</span><span>4 min read</span><span>Project: optimizers-low-precision</span></p>
+      <p class="lede">I wrote SGD, Momentum, Adam and AdamW from scratch, checked them against <code>torch.optim</code>, then trained a small network 600 times with every operation rounded to fp16, bf16 or fixed point. Adam and AdamW failed in <strong>10 runs out of 10</strong> in fp16, during the first epoch. Two lines of arithmetic explain why.</p>
+
+      <h2>One fp16 step, by hand</h2>
+      <p>Take a parameter <code>p = 1</code> with a small gradient <code>g = 1e-4</code>, the default <code>beta2 = 0.999</code> and <code>eps = 1e-8</code>.</p>
+      <pre>v = (fp16(0.001) × 1e-4) × 1e-4
+  → the first product is already a subnormal (1.19e-7)
+  → the second, 1.2e-11, rounds to 0
+m = fp16(0.1) × 1e-4 = 1.0e-5          (not zero)
+denominator = sqrt(v) / c + fp16(1e-8) = 0 + 0 = 0
+step = m / 0 = inf</pre>
+      <p>Adam's second moment underflows, and its safety constant <code>eps</code> is itself below the smallest fp16 number, so it rounds to zero too. The safety net is gone exactly when it is needed. In the fixed-point formats it is worse: <strong>97.7 % to 100 %</strong> of the denominators are zero.</p>
+      <p>Stochastic rounding does not help: it cannot bring back a constant that was 0 to begin with. <strong>Keeping the optimizer state in fp32 brings every run back</strong>, to 98.3 % accuracy in fp16 and in both fixed-point formats. That is exactly what mixed-precision training in real frameworks does, and now I know why it is not optional.</p>
+
+      <h2>AdamW quietly becomes Adam</h2>
+      <p>AdamW shrinks each weight by a factor <code>1 − lr·wd</code> before the Adam step. At my learning rate:</p>
+      <pre>1 − 0.021544 × 0.01 = 0.99978</pre>
+      <p>Half the relative spacing of fp16 is at least 2<sup>−12</sup> = 2.4e-4, more than the 2.2e-4 we are trying to subtract. So the factor itself rounds to 1. And if you keep the factor in fp32, the decayed weight rounds back to the same fp16 value when it is stored. A test checks every normal fp16 value.</p>
+      <p>Result: <strong>in fp16 and bf16, AdamW is Adam, bit for bit</strong>. Same validation loss for each seed. The weight decay you configured simply does not exist.</p>
+
+      <h2>And the ones that survive</h2>
+      <p>In bf16, Adam's second moment never decays (<code>beta2 · v</code> rounds back to <code>v</code> in 100 % of the steps), and yet accuracy does not move measurably here: 98.1 % ± 0.5 against 98.3 % ± 0.6 in float64. SGD and Momentum lose 40 % and 66 % of their updates at each step in bf16 and still reach float64 accuracy. Small updates disappear; the large ones still get through.</p>
+      <div class="callout"><strong>Takeaway.</strong> Low-precision training fails less because of the weights than because of the optimizer's own state and constants. Before choosing a number format for an accelerator, write down the smallest value each formula has to hold.</div>
+    </article>
+
+    <article data-l="fr">
+      <p class="kick">Matériel pour l'IA · basse précision</p>
+      <h1>Adam divise par zéro en fp16 (et AdamW devient Adam)</h1>
+      <p class="meta"><span>20 novembre 2026</span><span>4 min de lecture</span><span>Projet : optimizers-low-precision</span></p>
+      <p class="lede">J'ai écrit SGD, Momentum, Adam et AdamW de zéro, vérifiés contre <code>torch.optim</code>, puis entraîné un petit réseau 600 fois avec chaque opération arrondie en fp16, bf16 ou virgule fixe. Adam et AdamW ont échoué <strong>10 fois sur 10</strong> en fp16, dès la première époque. Deux lignes d'arithmétique expliquent pourquoi.</p>
+
+      <h2>Un pas fp16, à la main</h2>
+      <p>Prenons un paramètre <code>p = 1</code> avec un petit gradient <code>g = 1e-4</code>, les valeurs par défaut <code>beta2 = 0,999</code> et <code>eps = 1e-8</code>.</p>
+      <pre>v = (fp16(0,001) × 1e-4) × 1e-4
+  → le premier produit est déjà sous-normal (1,19e-7)
+  → le second, 1,2e-11, s'arrondit à 0
+m = fp16(0,1) × 1e-4 = 1,0e-5          (non nul)
+dénominateur = sqrt(v) / c + fp16(1e-8) = 0 + 0 = 0
+pas = m / 0 = inf</pre>
+      <p>Le moment d'ordre 2 d'Adam s'annule, et sa constante de sécurité <code>eps</code> est elle-même sous le plus petit nombre fp16 : elle s'arrondit aussi à zéro. Le filet de sécurité disparaît pile quand on en a besoin. En virgule fixe c'est pire : <strong>97,7 % à 100 %</strong> des dénominateurs sont nuls.</p>
+      <p>L'arrondi stochastique n'aide pas : il ne peut pas faire revenir une constante qui valait déjà 0. <strong>Garder l'état de l'optimiseur en fp32 sauve tous les essais</strong>, à 98,3 % de précision en fp16 et dans les deux formats virgule fixe. C'est exactement ce que font les frameworks en précision mixte, et je sais maintenant pourquoi ce n'est pas optionnel.</p>
+
+      <h2>AdamW devient discrètement Adam</h2>
+      <p>AdamW réduit chaque poids d'un facteur <code>1 − lr·wd</code> avant le pas d'Adam. Avec mon taux d'apprentissage :</p>
+      <pre>1 − 0,021544 × 0,01 = 0,99978</pre>
+      <p>La moitié de l'écart relatif du fp16 vaut au moins 2<sup>−12</sup> = 2,4e-4, plus que les 2,2e-4 qu'on veut retirer. Le facteur lui-même s'arrondit donc à 1. Et si on garde le facteur en fp32, le poids diminué retombe sur la même valeur fp16 au moment d'être stocké. Un test le vérifie pour toutes les valeurs fp16 normales.</p>
+      <p>Résultat : <strong>en fp16 et en bf16, AdamW est Adam, au bit près</strong>. Même perte de validation pour chaque graine. La décroissance de poids configurée n'existe tout simplement pas.</p>
+
+      <h2>Et ceux qui survivent</h2>
+      <p>En bf16, le moment d'ordre 2 d'Adam ne décroît jamais (<code>beta2 · v</code> retombe sur <code>v</code> dans 100 % des pas), et pourtant la précision ne bouge pas de façon mesurable ici : 98,1 % ± 0,5 contre 98,3 % ± 0,6 en float64. SGD et Momentum perdent 40 % et 66 % de leurs mises à jour à chaque pas en bf16 et atteignent quand même la précision float64. Les petites mises à jour disparaissent ; les grandes passent.</p>
+      <div class="callout"><strong>À retenir.</strong> L'entraînement en basse précision échoue moins à cause des poids qu'à cause de l'état et des constantes de l'optimiseur. Avant de choisir un format numérique pour un accélérateur, notez la plus petite valeur que chaque formule doit pouvoir représenter.</div>
+    </article>
+
+    <div class="endbox">
+      <p data-l="en">The 600 runs and every hand calculation are in the repository.</p>
+      <p data-l="fr">Les 600 essais et chaque calcul à la main sont dans le dépôt.</p>
+      <a class="pbtn primary" href="https://github.com/amine-belkacem/optimizers-low-precision" target="_blank" rel="noopener"><span data-l="en">View the repository</span><span data-l="fr">Voir le dépôt</span></a>
+    </div>
+  </main>
+
+  <footer class="pfoot"><span>© 2026 Mohamed Amine Belkacem</span><a href="./" data-keep-lang><span data-l="en">All articles</span><span data-l="fr">Tous les articles</span></a><a href="../" data-keep-lang>amine-belkacem.github.io</a></footer>
+  <script src="../js/data.js?v=3.0" defer></script>
+  <script src="../js/page.js?v=3.0" defer></script>
+</body>
+</html>
