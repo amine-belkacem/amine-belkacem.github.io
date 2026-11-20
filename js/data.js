@@ -34,7 +34,7 @@ window.PROFILE = {
   },
   /* Paste your Calendly (or Google Calendar booking page) link here, e.g. "https://calendly.com/your-name/15min".
      Empty = the "Book a call" button opens an e-mail with a pre-filled subject instead. */
-  booking: "",
+  booking: "https://calendly.com/amine5/new-meeting",
   /* GoatCounter site code (the part before .goatcounter.com), e.g. "amine-belkacem". Empty = no analytics. */
   goatcounter: "",
   location: { en: "Metz, France", fr: "Metz, France" },
